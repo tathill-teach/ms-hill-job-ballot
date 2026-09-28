@@ -41,6 +41,12 @@ module.exports = async (req,res)=>{
       await sql`INSERT INTO ballots(month_key,student_name,first_choice,second_choice,third_choice) VALUES(${mk},${studentName},${first},${second},${third}) ON CONFLICT(month_key,student_name) DO UPDATE SET first_choice=EXCLUDED.first_choice,second_choice=EXCLUDED.second_choice,third_choice=EXCLUDED.third_choice,submitted_at=now()`;
       return res.json({ok:true});
     }
+    if(action==='clearBallot'){
+      const pin=req.headers['x-teacher-pin'];if(process.env.TEACHER_PIN && pin!==process.env.TEACHER_PIN) return res.status(401).json({error:'Teacher PIN required.'});
+      const {studentName}=body;if(!studentName) return res.status(400).json({error:'Student name required'});
+      await sql`DELETE FROM ballots WHERE month_key=${mk} AND student_name=${studentName}`;
+      return res.json({ok:true});
+    }
     if(action==='addStudent'){
       const {name,currentJob}=body;if(!name) return res.status(400).json({error:'Name required'});
       await sql`INSERT INTO students(name,current_job) VALUES(${name},${currentJob||null}) ON CONFLICT(name) DO UPDATE SET current_job=EXCLUDED.current_job`;
