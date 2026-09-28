@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ms. Hill's Job Ballot</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5efff;color:#30243b;min-height:100vh}main{max-width:900px;margin:auto;padding:24px}header{text-align:center;background:#fff;border-radius:28px;padding:28px;box-shadow:0 8px 24px #0001}h1{margin:0 0 8px;font-size:42px}p{font-size:20px}.heart{color:#7b3fc6}.students,.jobs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:24px}.btn{border:0;border-radius:20px;padding:22px;font-size:20px;font-weight:700;background:#fff;box-shadow:0 5px 14px #0002;cursor:pointer}.btn:hover{transform:translateY(-1px)}.green{background:#35a853;color:white}.selected{outline:5px solid #8b5cf6}.hidden{display:none}.rank1{background:#f7c948;min-height:100vh}.rank2{background:#c8ccd2;min-height:100vh}.rank3{background:#a86f44;min-height:100vh}.rank3 main,.rank2 main,.rank1 main{padding-top:40px}.card{background:#fff;border-radius:24px;padding:25px;margin-top:22px}.choice{display:flex;justify-content:space-between;align-items:center;margin:10px 0;padding:16px;border-radius:16px;background:#f4f0f8}.disabled{opacity:.35;cursor:not-allowed}.celebrate{text-align:center;padding-top:18vh}.celebrate h1{font-size:58px}@media(max-width:600px){h1{font-size:32px}.celebrate h1{font-size:44px}.btn{padding:20px 12px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const students=["Elise Arrieta","Guhan Aroul","Casper Kamali","Ruby Rodriguez","James Selkirk","Lucy Hammer","Nicholas Luna","Eliana Ayala","James Leibfarth","Zedek Lobo","Eli Hamilton","Jenna Jonson","Owen Alspach","Eleanor Pelletier"];
+const current={"Elise Arrieta":"Line Leader","Guhan Aroul":"Door Holder","Casper Kamali":"Light Helper","Ruby Rodriguez":"Calendar Helper","James Selkirk":"Weather Monitor","Lucy Hammer":"Snack Helpers","Nicholas Luna":"Snack Helpers","Eliana Ayala":"Sweeper","James Leibfarth":"Pencil Patrol","Zedek Lobo":"Librarian","Eli Hamilton":"Paper Passer","Jenna Jonson":"Caboose","Owen Alspach":"Purple Folder Monitor","Eleanor Pelletier":"Teacher Helper"};
+const jobs=["Line Leader","Door Holder","Light Helper","Calendar Helper","Weather Monitor","Snack Helpers","Sweeper","Pencil Patrol","Librarian","Paper Passer","Caboose","Purple Folder Monitor","Teacher Helper","Stand-In Star"];
+let student=null, picks=[];
+function render(){
+ if(!student){document.getElementById("app").innerHTML='<main><header><h1>💜 Ms. Hill\'s Job Ballot</h1><p>Choose your name to get started!</p></header><div class="students">'+students.map(s=>'<button class="btn" onclick="chooseStudent(\''+s.replace(/'/g,"\\'")+'\')">'+s+'</button>').join('')+'</div></main>';return}
+ const rank=picks.length+1, cls=rank===1?"rank1":rank===2?"rank2":"rank3";
+ document.body.className=cls;
+ document.getElementById("app").innerHTML='<main><header><h1>'+(rank===1?"🥇":rank===2?"🥈":"🥉")+' '+rank+'st Choice</h1><p>'+student+', choose your '+rank+'st choice.</p></header><div class="jobs">'+jobs.map(j=>{let disabled=j===current[student]||picks.includes(j);return '<button class="btn '+(disabled?"disabled":"")+'" '+(disabled?"disabled":"onclick=\"pick(\'"+j.replace(/'/g,"\\'")+"\')\"")+'>'+j+(j===current[student]?" (Current Job)":"")+'</button>'}).join('')+'</div></main>';
+}
+function chooseStudent(s){student=s;picks=[];render()}
+function pick(j){picks.push(j); if(picks.length<3)render();else review()}
+function review(){document.body.className="";document.getElementById("app").innerHTML='<main><header><h1>💜 Review My Ballot</h1><p>Make sure your choices are correct.</p></header><div class="card">'+picks.map((x,i)=>'<div class="choice"><b>'+(i+1)+'. '+x+'</b></div>').join('')+'<button class="btn green" onclick="submitBallot()">Submit My Ballot</button><button class="btn" onclick="picks=[];render()">Start Over</button></div></main>'}
+function submitBallot(){let data=JSON.parse(localStorage.getItem("msHillBallots")||"{}");data[student]={choices:picks,submittedAt:new Date().toISOString()};localStorage.setItem("msHillBallots",JSON.stringify(data));document.body.className="";document.getElementById("app").innerHTML='<main class="celebrate"><div style="font-size:80px">🎉💜🎉</div><h1>Ballot Submitted!</h1><p>Great job, '+student+'!</p><button class="btn green" onclick="student=null;picks=[];render()">Next Student</button></main>'}
+render();
+</script>
+</body>
+</html>
