@@ -1,5 +1,5 @@
 const { neon } = require('@neondatabase/serverless');
-const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
+const sql = (process.env.DATABASE_URL || process.env.STORAGE_DATABASE_URL) ? neon(process.env.DATABASE_URL || process.env.STORAGE_DATABASE_URL) : null;
 const studentsDefault = [
   ["Elise Arrieta","Line Leader"],["Guhan Aroul","Door Holder"],["Casper Kamali","Light Helper"],
   ["Ruby Rodriguez","Calendar Helper"],["James Selkirk","Weather Monitor"],["Lucy Hammer","Snack Helpers"],
