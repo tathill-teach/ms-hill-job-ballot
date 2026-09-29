@@ -55,6 +55,17 @@ module.exports = async (req,res)=>{
       return res.json({monthKey:mk,students:s,jobs:j.map(x=>x.name)});
     }
 
+    if(action==="ballot"){
+      const {studentName,first,second,third}=body;
+      const st=(await sql`SELECT current_job FROM students WHERE name=${studentName}`)[0];
+      if(!st) return res.status(400).json({error:"Student not found."});
+      if(![first,second,third].every(x=>jobs.includes(x)) || new Set([first,second,third]).size!==3) return res.status(400).json({error:"Please provide three different choices."});
+      if([first,second,third].includes(st.current_job)) return res.status(400).json({error:"Your current job cannot be selected."});
+      await sql`INSERT INTO ballots(month_key,student_name,first_choice,second_choice,third_choice) VALUES(${mk},${studentName},${first},${second},${third}) ON CONFLICT(month_key,student_name) DO UPDATE SET first_choice=EXCLUDED.first_choice,second_choice=EXCLUDED.second_choice,third_choice=EXCLUDED.third_choice,submitted_at=now()`;
+      return res.json({ok:true});
+    }
+
+
     if(!teacherOK(req)) return res.status(401).json({error:"Teacher PIN required."});
 
     if(action==="bootstrap"){
@@ -66,16 +77,6 @@ module.exports = async (req,res)=>{
         sql`SELECT student_name,job_name,month_key FROM job_history ORDER BY student_name,month_key`
       ]);
       return res.json({monthKey:mk,students:s,jobs:j.map(x=>x.name),ballots:b,assignments:a,history:h});
-    }
-
-    if(action==="ballot"){
-      const {studentName,first,second,third}=body;
-      const st=(await sql`SELECT current_job FROM students WHERE name=${studentName}`)[0];
-      if(!st) return res.status(400).json({error:"Student not found."});
-      if(![first,second,third].every(x=>jobs.includes(x)) || new Set([first,second,third]).size!==3) return res.status(400).json({error:"Please provide three different choices."});
-      if([first,second,third].includes(st.current_job)) return res.status(400).json({error:"Your current job cannot be selected."});
-      await sql`INSERT INTO ballots(month_key,student_name,first_choice,second_choice,third_choice) VALUES(${mk},${studentName},${first},${second},${third}) ON CONFLICT(month_key,student_name) DO UPDATE SET first_choice=EXCLUDED.first_choice,second_choice=EXCLUDED.second_choice,third_choice=EXCLUDED.third_choice,submitted_at=now()`;
-      return res.json({ok:true});
     }
 
     if(action==="clearBallot"){
